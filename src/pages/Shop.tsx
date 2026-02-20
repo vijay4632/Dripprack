@@ -2,11 +2,13 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
-import { products, categories, sizes, conditions } from "@/data/products";
+import { categories, sizes, conditions } from "@/data/products";
+import { useProductStore } from "@/hooks/useProductStore";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal, X } from "lucide-react";
 
 const Shop = () => {
+  const { products } = useProductStore();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<string | null>(null);

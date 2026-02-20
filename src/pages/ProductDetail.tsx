@@ -2,14 +2,16 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, ShoppingBag, Zap } from "lucide-react";
 import Layout from "@/components/Layout";
-import { products, formatPrice } from "@/data/products";
+import { formatPrice } from "@/data/products";
+import { useProductStore } from "@/hooks/useProductStore";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { toast } from "sonner";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const product = products.find((p) => p.id === id);
+  const { getProduct } = useProductStore();
+  const product = id ? getProduct(id) : null;
   const [isWished, setIsWished] = useState(false);
 
   if (!product) {

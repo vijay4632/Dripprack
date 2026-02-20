@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { products } from "@/data/products";
+import { useProductStore } from "@/hooks/useProductStore";
 import ProductCard from "./ProductCard";
 import { Button } from "@/components/ui/button";
 
 const FeaturedProducts = () => {
+  const { products } = useProductStore();
   const featured = products.slice(0, 4);
 
   return (
