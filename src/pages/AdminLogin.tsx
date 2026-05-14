@@ -61,9 +61,6 @@ const AdminLogin = () => {
           </Button>
         </form>
 
-        <p className="text-center font-body text-xs text-muted-foreground">
-          Default: admin / dripprack2024
-        </p>
       </div>
     </div>
   );
