@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Product } from "@/data/products";
 import { toast } from "sonner";
 
-const API_URL = "http://localhost:5000/api/products";
+const API_URL = "https://dripprack-backend.vercel.app/api/products";
 
 export function useProductStore() {
   const queryClient = useQueryClient();
