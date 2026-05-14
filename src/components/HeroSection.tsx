@@ -1,19 +1,22 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-image.jpg";
+import heroVideo from "@/assets/hero.mp4";
 
 const HeroSection = () => {
   return (
     <section className="relative flex min-h-[90vh] items-center overflow-hidden">
-      {/* Background Image */}
+      {/* Background Video */}
       <div className="absolute inset-0">
-        <img
-          src={heroImage}
-          alt="Model wearing curated streetwear from Dripprack"
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
           className="h-full w-full object-cover object-center"
-          loading="eager"
-        />
+        >
+          <source src={heroVideo} type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
       </div>

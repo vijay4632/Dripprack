@@ -6,7 +6,7 @@ import { Lock, User } from "lucide-react";
 import { toast } from "sonner";
 
 const ADMIN_USER = "admin";
-const ADMIN_PASS = "dripprack2024";
+const ADMIN_PASS = "dripprack2026";
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");

@@ -13,15 +13,13 @@ const emptyForm = {
   brand: "",
   price: 0,
   originalPrice: undefined as number | undefined,
-  image: "",
+  images: [] as string[],
   category: categories[1],
   size: "M",
   condition: "Good" as Product["condition"],
   limited: false,
   description: "",
-  fabric: "",
   fit: "Regular",
-  modelInfo: "",
 };
 
 const AdminProductForm = () => {
@@ -30,7 +28,7 @@ const AdminProductForm = () => {
   const navigate = useNavigate();
   const { getProduct, addProduct, updateProduct } = useProductStore();
   const [form, setForm] = useState(emptyForm);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   useEffect(() => {
     if (sessionStorage.getItem("dripprack_admin") !== "true") {
@@ -45,31 +43,45 @@ const AdminProductForm = () => {
           brand: product.brand,
           price: product.price,
           originalPrice: product.originalPrice,
-          image: product.image,
+          images: product.images || [],
           category: product.category,
           size: product.size,
           condition: product.condition,
           limited: product.limited,
           description: product.description,
-          fabric: product.fabric,
           fit: product.fit,
-          modelInfo: product.modelInfo,
         });
-        setImagePreview(product.image);
+        setImagePreviews(product.images || []);
       }
     }
   }, [id, isEditing, getProduct, navigate]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
-      setForm((prev) => ({ ...prev, image: base64 }));
-      setImagePreview(base64);
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const remainingSlots = 5 - form.images.length;
+    if (remainingSlots <= 0) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
+    const filesToProcess = files.slice(0, remainingSlots);
+
+    filesToProcess.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setForm((prev) => ({ ...prev, images: [...prev.images, base64] }));
+        setImagePreviews((prev) => [...prev, base64]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -119,25 +131,28 @@ const AdminProductForm = () => {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {/* Image Upload */}
           <div>
-            <label className={labelCls}>Product Image</label>
-            <div className="mt-2 flex items-start gap-4">
-              <div className="relative h-40 w-32 overflow-hidden rounded-sm border border-dashed border-border bg-card flex items-center justify-center">
-                {imagePreview ? (
-                  <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
-                ) : (
-                  <ImagePlus className="h-8 w-8 text-muted-foreground" />
+            <label className={labelCls}>Product Images ({form.images.length}/5)</label>
+            <div className="mt-2 flex flex-col gap-4">
+              <div className="flex flex-wrap gap-4">
+                {imagePreviews.map((preview, i) => (
+                  <div key={i} className="relative h-24 w-20 overflow-hidden rounded-sm border border-border bg-card group">
+                    <img src={preview} alt={`Preview ${i}`} className="h-full w-full object-cover" />
+                    <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 flex items-center justify-center bg-background/80 hover:bg-destructive hover:text-white rounded-full h-5 w-5 text-[10px] font-bold transition-colors">
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                {form.images.length < 5 && (
+                  <label className="cursor-pointer">
+                    <div className="h-24 w-20 flex flex-col items-center justify-center rounded-sm border border-dashed border-border bg-card transition-colors hover:bg-muted">
+                      <ImagePlus className="h-6 w-6 text-muted-foreground mb-1" />
+                      <span className="text-[10px] uppercase text-muted-foreground font-bold">Add</span>
+                    </div>
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+                  </label>
                 )}
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="cursor-pointer">
-                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                  <span className="inline-flex items-center gap-2 rounded-sm border border-border px-4 py-2 font-heading text-xs font-semibold uppercase tracking-wider text-foreground transition-colors hover:bg-card">
-                    <ImagePlus className="h-4 w-4" />
-                    Upload Image
-                  </span>
-                </label>
-                <p className="font-body text-[11px] text-muted-foreground">JPG, PNG, WebP. Stored in browser.</p>
-              </div>
+              <p className="font-body text-[11px] text-muted-foreground">JPG, PNG, WebP. First image is the main thumbnail. Max 5 images.</p>
             </div>
           </div>
 
@@ -156,11 +171,11 @@ const AdminProductForm = () => {
           {/* Price */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className={labelCls}>Price (₦) *</label>
+              <label className={labelCls}>Price (₹) *</label>
               <Input type="number" className={`mt-1.5 ${inputCls}`} value={form.price || ""} onChange={(e) => set("price", Number(e.target.value))} placeholder="8500" />
             </div>
             <div>
-              <label className={labelCls}>Original Price (₦)</label>
+              <label className={labelCls}>Original Price (₹)</label>
               <Input type="number" className={`mt-1.5 ${inputCls}`} value={form.originalPrice || ""} onChange={(e) => set("originalPrice", e.target.value ? Number(e.target.value) : undefined)} placeholder="15000" />
             </div>
           </div>
@@ -205,22 +220,10 @@ const AdminProductForm = () => {
             </div>
           </div>
 
-          {/* Fabric, Fit */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className={labelCls}>Fabric</label>
-              <Input className={`mt-1.5 ${inputCls}`} value={form.fabric} onChange={(e) => set("fabric", e.target.value)} placeholder="100% Cotton" />
-            </div>
-            <div>
-              <label className={labelCls}>Fit</label>
-              <Input className={`mt-1.5 ${inputCls}`} value={form.fit} onChange={(e) => set("fit", e.target.value)} placeholder="Oversized" />
-            </div>
-          </div>
-
-          {/* Model Info */}
+          {/* Fit */}
           <div>
-            <label className={labelCls}>Model Info</label>
-            <Input className={`mt-1.5 ${inputCls}`} value={form.modelInfo} onChange={(e) => set("modelInfo", e.target.value)} placeholder="Model is 6'1 wearing size L" />
+            <label className={labelCls}>Fit</label>
+            <Input className={`mt-1.5 ${inputCls}`} value={form.fit} onChange={(e) => set("fit", e.target.value)} placeholder="Oversized" />
           </div>
 
           {/* Description */}

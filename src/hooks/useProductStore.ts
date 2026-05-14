@@ -1,49 +1,99 @@
-import { useState, useEffect, useCallback } from "react";
-import { Product, products as defaultProducts } from "@/data/products";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Product } from "@/data/products";
+import { toast } from "sonner";
 
-const STORAGE_KEY = "dripprack_products";
-
-function loadProducts(): Product[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch {
-    // fall through
-  }
-  return [...defaultProducts];
-}
-
-function saveProducts(products: Product[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-}
+const API_URL = "http://localhost:5000/api/products";
 
 export function useProductStore() {
-  const [products, setProducts] = useState<Product[]>(loadProducts);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    saveProducts(products);
-  }, [products]);
+  const { data: products = [], isLoading, error } = useQuery<Product[]>({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const res = await fetch(API_URL);
+      if (!res.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      return res.json();
+    },
+  });
 
-  const addProduct = useCallback((product: Omit<Product, "id">) => {
-    const id = Date.now().toString();
-    setProducts((prev) => [...prev, { ...product, id }]);
-    return id;
-  }, []);
+  const generateIdMutation = useMutation({
+    mutationFn: async (product: Omit<Product, "id">) => {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to add product");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
 
-  const updateProduct = useCallback((id: string, updates: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
-    );
-  }, []);
+  const updateProductMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Product> }) => {
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error("Failed to update product");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
 
-  const deleteProduct = useCallback((id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-  }, []);
+  const deleteProductMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete product");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    }
+  });
 
-  const getProduct = useCallback(
-    (id: string) => products.find((p) => p.id === id) || null,
-    [products]
-  );
+  const addProduct = (product: Omit<Product, "id">) => {
+    generateIdMutation.mutate(product);
+  };
 
-  return { products, addProduct, updateProduct, deleteProduct, getProduct };
+  const updateProduct = (id: string, updates: Partial<Product>) => {
+    updateProductMutation.mutate({ id, updates });
+  };
+
+  const deleteProduct = (id: string) => {
+    deleteProductMutation.mutate(id);
+  };
+
+  const getProduct = (id: string) => products.find((p) => p.id === id) || null;
+
+  return {
+    products,
+    isLoading,
+    error,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    getProduct
+  };
 }

@@ -118,7 +118,7 @@ const AdminDashboard = () => {
                     <TableCell>
                       <div className="h-12 w-12 overflow-hidden rounded-sm bg-charcoal">
                         <img
-                          src={product.image}
+                          src={product.images?.[0] || ""}
                           alt={product.name}
                           className="h-full w-full object-cover"
                         />
@@ -134,13 +134,12 @@ const AdminDashboard = () => {
                     <TableCell className="font-heading text-xs font-bold text-foreground">{formatPrice(product.price)}</TableCell>
                     <TableCell className="font-body text-xs text-muted-foreground">{product.size}</TableCell>
                     <TableCell>
-                      <span className={`inline-block rounded-sm px-2 py-0.5 font-heading text-[10px] font-bold uppercase ${
-                        product.condition === "Excellent"
+                      <span className={`inline-block rounded-sm px-2 py-0.5 font-heading text-[10px] font-bold uppercase ${product.condition === "Excellent"
                           ? "bg-accent/10 text-accent"
                           : product.condition === "Good"
-                          ? "bg-primary/10 text-primary"
-                          : "bg-muted text-muted-foreground"
-                      }`}>
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted text-muted-foreground"
+                        }`}>
                         {product.condition}
                       </span>
                     </TableCell>

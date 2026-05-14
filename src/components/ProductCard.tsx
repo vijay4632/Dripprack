@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { Product, formatPrice } from "@/data/products";
-import { useState } from "react";
+import { useWishlist } from "@/hooks/useWishlist";
 
 interface ProductCardProps {
   product: Product;
@@ -10,7 +10,8 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
-  const [isWished, setIsWished] = useState(false);
+  const toggleWishlist = useWishlist((state) => state.toggleWishlist);
+  const isInWishlist = useWishlist((state) => state.isInWishlist(product.id));
 
   return (
     <motion.div
@@ -24,7 +25,7 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         {/* Image */}
         <div className="image-zoom relative aspect-[3/4] overflow-hidden rounded-sm bg-charcoal">
           <img
-            src={product.image}
+            src={product.images?.[0] || ""}
             alt={`${product.brand} ${product.name}`}
             className="h-full w-full object-cover"
             loading="lazy"
@@ -43,15 +44,14 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           <button
             onClick={(e) => {
               e.preventDefault();
-              setIsWished(!isWished);
+              toggleWishlist(product);
             }}
             className="absolute right-3 top-3 rounded-full bg-background/60 p-2 backdrop-blur-sm transition-all hover:bg-background/80"
             aria-label="Add to wishlist"
           >
             <Heart
-              className={`h-4 w-4 transition-colors ${
-                isWished ? "fill-primary text-primary" : "text-foreground"
-              }`}
+              className={`h-4 w-4 transition-colors ${isInWishlist ? "fill-primary text-primary" : "text-foreground"
+                }`}
             />
           </button>
 
