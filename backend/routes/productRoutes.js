@@ -6,13 +6,12 @@ const Product = require('../models/Product');
 // @desc    Get all products
 router.get('/', async (req, res) => {
     try {
-        const products = await Product.find({});
+        const products = await Product.find({}).lean();
         // the frontend expects an id field (string), mongoose uses _id (ObjectId).
         // map the _id to id
         const mappedProducts = products.map(p => {
-            const pObj = p.toObject();
-            pObj.id = pObj._id.toString();
-            return pObj;
+            p.id = p._id.toString();
+            return p;
         });
         res.json(mappedProducts);
     } catch (error) {
@@ -24,11 +23,10 @@ router.get('/', async (req, res) => {
 // @desc    Get a single product
 router.get('/:id', async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById(req.params.id).lean();
         if (product) {
-            const pObj = product.toObject();
-            pObj.id = pObj._id.toString();
-            res.json(pObj);
+            product.id = product._id.toString();
+            res.json(product);
         } else {
             res.status(404).json({ message: 'Product not found' });
         }
