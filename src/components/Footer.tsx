@@ -64,7 +64,7 @@ const Footer = () => {
             </h4>
             <div className="mt-4 flex gap-4">
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/dripprack/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground transition-colors hover:text-primary"

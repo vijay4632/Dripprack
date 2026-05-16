@@ -6,17 +6,14 @@ import heroVideo from "@/assets/hero.mp4";
 const HeroSection = () => {
   return (
     <section className="relative flex min-h-[90vh] items-center overflow-hidden">
-      {/* Background Video */}
+      {/* Background Image */}
       <div className="absolute inset-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
+        <img
+          src={heroVideo}
+          alt="Model wearing curated streetwear from Dripprack"
           className="h-full w-full object-cover object-center"
-        >
-          <source src={heroVideo} type="video/mp4" />
-        </video>
+          loading="eager"
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
       </div>
